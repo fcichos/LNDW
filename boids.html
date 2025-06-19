@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>About – Lange Nacht der Wissenschaften</title>
+<title>Boids Simulation nach Craig Reynolds – Lange Nacht der Wissenschaften</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -90,7 +90,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./boids.html"> 
+    <a class="nav-link active" href="./boids.html" aria-current="page"> 
 <span class="menu-text">Boids</span></a>
   </li>  
   <li class="nav-item">
@@ -98,7 +98,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Vicsek</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./about.html" aria-current="page"> 
+    <a class="nav-link" href="./about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
 </ul>
@@ -120,7 +120,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">About</h1>
+<h1 class="title">Boids Simulation nach Craig Reynolds</h1>
 </div>
 
 
@@ -137,7 +137,326 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>About this site</p>
+<div id="fig-boids" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-boids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div id="boids-container"></div>
+
+<style>
+  #boids-container {
+    width: 1200px;
+    height: 600px;
+    margin: 0 auto;
+    border: 0px solid #ccc;
+    background-color: #ffffff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .boid {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 2.5px solid transparent;
+    border-right: 2.5px solid transparent;
+    border-bottom: 6px solid #000000;
+    transform-origin: 50% 67%;
+  }
+
+  .controls {
+    margin: 10px auto;
+    text-align: center;
+    font-family: sans-serif;
+  }
+
+  button, label {
+    margin: 0 10px;
+  }
+
+  button {
+    background: transparent;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+</style>
+
+<div class="controls" style="display: flex; justify-content: space-between; align-items: flex-start;margin-left:20 px;">
+  <div>
+    <button id="reset-btn">Reset Simulation</button>
+  </div>
+  <div style="display: flex; flex-direction: column; align-items: flex-start; margin-top: 10px; margin-right: 100px;">
+    <label style="margin-bottom: 5px;">Separation: <input type="range" id="separation" min="0" max="5" step="0.1" value="2.5"></label>
+    <label style="margin-bottom: 5px;">Alignment: <input type="range" id="alignment" min="0" max="2" step="0.1" value="0.2"></label>
+    <label style="margin-bottom: 5px;">Cohesion: <input type="range" id="cohesion" min="0" max="2" step="0.1" value="0.2"></label>
+  </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Configuration
+  const config = {
+    numBoids: 1000,
+    width: 1000,
+    height: 600,
+    maxSpeed: 3,
+    minSpeed: 1,
+    perceptionRadius: 20,
+    separationWeight: 2.5,
+    alignmentWeight: 0.2,
+    cohesionWeight: 0.01,
+    avoidBoundaryWeight: 1.0,
+    boundaryMargin: 50,
+    maxForce: 0.2
+  };
+
+  // Initialize boids
+  let boids = [];
+
+  function initBoids() {
+    boids = [];
+    for (let i = 0; i < config.numBoids; i++) {
+      boids.push({
+        id: i,
+        x: Math.random() * config.width,
+        y: Math.random() * config.height,
+        vx: Math.random() * 2 - 1,
+        vy: Math.random() * 2 - 1,
+        history: []
+      });
+    }
+
+    // Normalize velocities
+    boids.forEach(boid => {
+      const speed = Math.sqrt(boid.vx * boid.vx + boid.vy * boid.vy);
+      boid.vx = (boid.vx / speed) * (config.minSpeed + Math.random() * (config.maxSpeed - config.minSpeed));
+      boid.vy = (boid.vy / speed) * (config.minSpeed + Math.random() * (config.maxSpeed - config.minSpeed));
+    });
+  }
+
+  // D3 setup
+  const container = d3.select('#boids-container');
+
+  function updateBoids() {
+    // Read current slider values
+    config.separationWeight = parseFloat(d3.select('#separation').property('value'));
+    config.alignmentWeight = parseFloat(d3.select('#alignment').property('value'));
+    config.cohesionWeight = parseFloat(d3.select('#cohesion').property('value'));
+
+    boids.forEach(boid => {
+      // Find neighbors within perception radius
+      const neighbors = boids.filter(other => {
+        if (other.id === boid.id) return false;
+        const dx = boid.x - other.x;
+        const dy = boid.y - other.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        return dist < config.perceptionRadius;
+      });
+
+      // Apply Reynolds' three rules plus boundary avoidance
+
+      // Rule 1: Separation - avoid crowding neighbors
+      let separationForceX = 0;
+      let separationForceY = 0;
+
+      neighbors.forEach(neighbor => {
+        const dx = boid.x - neighbor.x;
+        const dy = boid.y - neighbor.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        // Weight by inverse distance - closer neighbors have more influence
+        const factor = Math.max(0, config.perceptionRadius - dist) / config.perceptionRadius;
+        separationForceX += (dx / dist) * factor;
+        separationForceY += (dy / dist) * factor;
+      });
+
+      // Rule 2: Alignment - steer towards average heading of neighbors
+      let alignmentForceX = 0;
+      let alignmentForceY = 0;
+
+      if (neighbors.length > 0) {
+        let avgVx = 0;
+        let avgVy = 0;
+
+        neighbors.forEach(neighbor => {
+          avgVx += neighbor.vx;
+          avgVy += neighbor.vy;
+        });
+
+        avgVx /= neighbors.length;
+        avgVy /= neighbors.length;
+
+        // Calculate steering force toward alignment
+        alignmentForceX = avgVx - boid.vx;
+        alignmentForceY = avgVy - boid.vy;
+      }
+
+      // Rule 3: Cohesion - steer towards center of mass of neighbors
+      let cohesionForceX = 0;
+      let cohesionForceY = 0;
+
+      if (neighbors.length > 0) {
+        let centerX = 0;
+        let centerY = 0;
+
+        neighbors.forEach(neighbor => {
+          centerX += neighbor.x;
+          centerY += neighbor.y;
+        });
+
+        centerX /= neighbors.length;
+        centerY /= neighbors.length;
+
+        // Calculate steering force toward center
+        cohesionForceX = centerX - boid.x;
+        cohesionForceY = centerY - boid.y;
+      }
+
+      // Boundary avoidance
+      let boundaryForceX = 0;
+      let boundaryForceY = 0;
+
+      if (boid.x < config.boundaryMargin) {
+        boundaryForceX = config.boundaryMargin - boid.x;
+      } else if (boid.x > config.width - config.boundaryMargin) {
+        boundaryForceX = (config.width - config.boundaryMargin) - boid.x;
+      }
+
+      if (boid.y < config.boundaryMargin) {
+        boundaryForceY = config.boundaryMargin - boid.y;
+      } else if (boid.y > config.height - config.boundaryMargin) {
+        boundaryForceY = (config.height - config.boundaryMargin) - boid.y;
+      }
+
+      // Apply all forces with weights
+      let accelerationX = separationForceX * config.separationWeight +
+                          alignmentForceX * config.alignmentWeight +
+                          cohesionForceX * config.cohesionWeight +
+                          boundaryForceX * config.avoidBoundaryWeight;
+
+      let accelerationY = separationForceY * config.separationWeight +
+                          alignmentForceY * config.alignmentWeight +
+                          cohesionForceY * config.cohesionWeight +
+                          boundaryForceY * config.avoidBoundaryWeight;
+
+      // Limit force magnitude
+      const forceMagnitude = Math.sqrt(accelerationX * accelerationX + accelerationY * accelerationY);
+      if (forceMagnitude > config.maxForce) {
+        accelerationX = (accelerationX / forceMagnitude) * config.maxForce;
+        accelerationY = (accelerationY / forceMagnitude) * config.maxForce;
+      }
+
+      // Update velocity
+      boid.vx += accelerationX;
+      boid.vy += accelerationY;
+
+      // Limit speed
+      const speed = Math.sqrt(boid.vx * boid.vx + boid.vy * boid.vy);
+      if (speed > config.maxSpeed) {
+        boid.vx = (boid.vx / speed) * config.maxSpeed;
+        boid.vy = (boid.vy / speed) * config.maxSpeed;
+      } else if (speed < config.minSpeed) {
+        boid.vx = (boid.vx / speed) * config.minSpeed;
+        boid.vy = (boid.vy / speed) * config.minSpeed;
+      }
+
+      // Update position
+      boid.x += boid.vx;
+      boid.y += boid.vy;
+
+      // Keep track of history for trail (optional)
+      boid.history.push({ x: boid.x, y: boid.y });
+      if (boid.history.length > 10) {
+        boid.history.shift();
+      }
+
+      // Wrap around boundaries (alternative to avoidance)
+      /*
+      if (boid.x < 0) boid.x = config.width;
+      if (boid.x > config.width) boid.x = 0;
+      if (boid.y < 0) boid.y = config.height;
+      if (boid.y > config.height) boid.y = 0;
+      */
+    });
+  }
+
+  function render() {
+    // Update boid elements
+    const boidElements = container.selectAll('.boid')
+      .data(boids, d => d.id);
+
+    // Enter
+    boidElements.enter()
+      .append('div')
+      .attr('class', 'boid')
+      .attr('id', d => `boid-${d.id}`);
+
+    // Update
+    container.selectAll('.boid')
+      .style('left', d => `${d.x}px`)
+      .style('top', d => `${d.y}px`)
+      .style('transform', d => {
+        const angle = Math.atan2(d.vy, d.vx) * (180 / Math.PI) + 90;
+        return `translate(-50%, -50%) rotate(${angle}deg)`;
+      });
+
+    // Exit
+    boidElements.exit().remove();
+  }
+
+  function animate() {
+    updateBoids();
+    render();
+    requestAnimationFrame(animate);
+  }
+
+  // Reset function and event binding
+  function resetSimulation() {
+    initBoids();
+    render();
+  }
+
+  d3.select('#reset-btn').on('click', resetSimulation);
+
+  // Initialize and start animation
+  initBoids();
+  animate();
+});
+</script>
+
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-boids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Interaktive Simulation des <a href="https://www.red3d.com/cwr/boids/">Boids-Modells</a> nach Craig Reynolds, bei der Sie die drei Schlüsselparameter anpassen können, die das Schwarmverhalten steuern: Separation (Vermeidung von Gedränge), Ausrichtung (Steuerung zur durchschnittlichen Flugrichtung) und Kohäsion (Steuerung zum Massenzentrum).
+</figcaption>
+</figure>
+</div>
+<div class="grid">
+<div class="g-col-4">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/separation.gif" class="img-fluid figure-img"></p>
+<figcaption>Separation - Boids vermeiden Gedränge mit ihren Nachbarn</figcaption>
+</figure>
+</div>
+</div>
+<div class="g-col-4">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/alignment.gif" class="img-fluid figure-img"></p>
+<figcaption>Alignment - Boids richten sich an der durchschnittlichen Flugrichtung ihrer Nachbarn aus</figcaption>
+</figure>
+</div>
+</div>
+<div class="g-col-4">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/cohesion.gif" class="img-fluid figure-img"></p>
+<figcaption>Cohesion - Boids steuern zum Massenzentrum ihrer Nachbarn</figcaption>
+</figure>
+</div>
+</div>
+</div>
 
 
 
