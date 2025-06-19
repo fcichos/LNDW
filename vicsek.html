@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>About – Lange Nacht der Wissenschaften</title>
+<title>Vicsek Modell – Lange Nacht der Wissenschaften</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -94,11 +94,11 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Boids</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./vicsek.html"> 
+    <a class="nav-link active" href="./vicsek.html" aria-current="page"> 
 <span class="menu-text">Vicsek</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./about.html" aria-current="page"> 
+    <a class="nav-link" href="./about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
 </ul>
@@ -117,7 +117,7 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#schwarmverhalten" id="toc-schwarmverhalten" class="nav-link active" data-scroll-target="#schwarmverhalten">Schwarmverhalten</a></li>
+  <li><a href="#vicsek-modell" id="toc-vicsek-modell" class="nav-link active" data-scroll-target="#vicsek-modell">Vicsek Modell</a></li>
   </ul>
 </nav>
     </div>
@@ -126,7 +126,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">About</h1>
+<h1 class="title">Vicsek Modell</h1>
 </div>
 
 
@@ -143,9 +143,274 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="schwarmverhalten" class="level2">
-<h2 class="anchored" data-anchor-id="schwarmverhalten">Schwarmverhalten</h2>
-<p>Diese Webseite zeigt Simulationen von Schwarmverhalten mit zwei verschiedenen Modellen: dem Vicsek-Modell und dem Boids-Modell.</p>
+<div id="fig-boids" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-boids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div id="vicsek-simulation" style="width: 100%; height:700px; border: 0px solid #ccc; margin-bottom: 30px;">
+  <div id="vicsek-canvas" style="width: 100%; height: 600px;"></div>
+  <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label for="particle-speed">Speed: <span id="speed-value">4.0</span></label>
+      <input type="range" id="particle-speed" min="1.0" max="10" step="0.1" value="4">
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label for="interaction-radius">Interaction Radius: <span id="radius-value">50</span></label>
+      <input type="range" id="interaction-radius" min="10" max="100" step="5" value="50">
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label for="noise-level">Noise (η): <span id="noise-value">1.0</span></label>
+      <input type="range" id="noise-level" min="0" max="5" step="0.1" value="1.0">
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label for="particle-density">Density (ρ): <span id="density-value">3.0</span></label>
+      <input type="range" id="particle-density" min="0" max="10" step="0.5" value="3">
+    </div>
+    <button id="reset-vicsek" style="align-self: center; height: 30px;">Reset</button>
+  </div>
+  <div style="text-align: center; margin-top: 10px; font-size: 14px; font-weight: bold;">
+    Order Parameter φ: <span id="order-parameter-value" style="color: steelblue;">0.00</span>
+  </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+// Simulation parameters
+const vicsekWidth = document.getElementById('vicsek-canvas').clientWidth;
+const vicsekHeight = 600;
+let numVicsekParticles = 600;
+// Store the current density value to avoid fluctuations in display
+let currentDensityValue = 3.0;
+
+// Create SVG container
+const vicsekSvg = d3.select("#vicsek-canvas")
+  .append("svg")
+  .attr("width", vicsekWidth)
+  .attr("height", vicsekHeight);
+
+// Add background for better visibility
+vicsekSvg.append("rect")
+  .attr("width", vicsekWidth)
+  .attr("height", vicsekHeight)
+  .attr("fill", "#ffffff");
+
+// Initialize particles
+let vicsekParticles = [];
+
+function initializeVicsekParticles() {
+  // Get current density value and convert to particle count
+  const densityValue = parseFloat(d3.select("#particle-density").property("value"));
+  currentDensityValue = densityValue; // Store the value
+  d3.select("#density-value").text(currentDensityValue.toFixed(1)); // Update display once
+
+  numVicsekParticles = Math.round(densityValue * 100); // Map 0-10 density to 0-1000 particles
+
+  vicsekParticles = [];
+  for (let i = 0; i < numVicsekParticles; i++) {
+    // Random position and direction
+    const angle = Math.random() * 2 * Math.PI;
+    vicsekParticles.push({
+      id: i,
+      x: Math.random() * vicsekWidth,
+      y: Math.random() * vicsekHeight,
+      angle: angle,
+      vx: Math.cos(angle),
+      vy: Math.sin(angle)
+    });
+  }
+}
+
+// Create particle elements
+let particleElements;
+
+function createParticleElements() {
+  // Remove existing particles
+  vicsekSvg.selectAll(".particle").remove();
+
+  // Create new particles
+  particleElements = vicsekSvg.selectAll(".particle")
+    .data(vicsekParticles)
+    .enter()
+    .append("g")
+    .attr("class", "particle")
+    .attr("transform", d => `translate(${d.x},${d.y})`);
+
+  // Add arrowhead for particles to show direction of motion
+  particleElements.append("path")
+    .attr("d", "M 0,0 L -6,4 L 6,0 L -6,-4 Z")  // Small arrowhead shape
+    .attr("fill", "black")
+    .attr("transform", d => `rotate(${Math.atan2(d.vy, d.vx) * 180 / Math.PI})`);
+}
+
+function calculateOrderParameter() {
+  // Calculate the order parameter φ = |<v>|/v₀
+  // where <v> is the average velocity vector and v₀ is the particle speed
+  let sumVx = 0;
+  let sumVy = 0;
+
+  vicsekParticles.forEach(particle => {
+    sumVx += particle.vx;
+    sumVy += particle.vy;
+  });
+
+  // Average velocity components
+  const avgVx = sumVx / vicsekParticles.length;
+  const avgVy = sumVy / vicsekParticles.length;
+
+  // Magnitude of average velocity
+  const avgSpeed = Math.sqrt(avgVx * avgVx + avgVy * avgVy);
+
+  // Order parameter (normalized by unit speed since |v| = 1 for each particle)
+  const orderParameter = avgSpeed;
+
+  return orderParameter;
+}
+
+function updateVicsekParticles() {
+  // Get current parameter values
+  const particleSpeed = parseFloat(d3.select("#particle-speed").property("value"));
+  const interactionRadius = parseFloat(d3.select("#interaction-radius").property("value"));
+  const noiseLevel = parseFloat(d3.select("#noise-level").property("value"));
+  const densityValue = parseFloat(d3.select("#particle-density").property("value"));
+
+  // Don't update density display here to prevent fluctuation
+  currentDensityValue = densityValue;
+
+  const targetParticles = Math.round(currentDensityValue * 100);
+
+  // Check if density has changed and reinitialize if needed
+  if (targetParticles !== numVicsekParticles) {
+    numVicsekParticles = targetParticles;
+    initializeVicsekParticles();
+    createParticleElements();
+    return; // Skip this update cycle to avoid issues
+  }
+
+  // Update each particle according to Vicsek model
+  vicsekParticles.forEach(particle => {
+    // Find neighbors within interaction radius
+    const neighbors = vicsekParticles.filter(other => {
+      if (other.id === particle.id) return false;
+
+      // Calculate distance with periodic boundary conditions
+      let dx = Math.abs(other.x - particle.x);
+      let dy = Math.abs(other.y - particle.y);
+
+      // Account for periodic boundaries
+      if (dx > vicsekWidth / 2) dx = vicsekWidth - dx;
+      if (dy > vicsekHeight / 2) dy = vicsekHeight - dy;
+
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance < interactionRadius;
+    });
+
+    if (neighbors.length > 0) {
+      // Calculate average direction of neighbors
+      let avgSin = 0;
+      let avgCos = 0;
+
+      neighbors.forEach(neighbor => {
+        avgSin += Math.sin(neighbor.angle);
+        avgCos += Math.cos(neighbor.angle);
+      });
+
+      avgSin /= neighbors.length;
+      avgCos /= neighbors.length;
+
+      // New angle is the average angle plus noise
+      let newAngle = Math.atan2(avgSin, avgCos);
+
+      // Add noise - consistent with original Vicsek paper scaling
+      // η ranges from 0 to 5, with noise applied as η * ξ where ξ ∈ [-π, π]
+      newAngle += (Math.random() - 0.5) * 2 * Math.PI * (noiseLevel / 5);
+
+      // Update angle and velocity
+      particle.angle = newAngle;
+      particle.vx = Math.cos(newAngle);
+      particle.vy = Math.sin(newAngle);
+    }
+
+    // Update position
+    particle.x += particle.vx * particleSpeed;
+    particle.y += particle.vy * particleSpeed;
+
+    // Periodic boundary conditions
+    if (particle.x < 0) particle.x += vicsekWidth;
+    if (particle.x > vicsekWidth) particle.x -= vicsekWidth;
+    if (particle.y < 0) particle.y += vicsekHeight;
+    if (particle.y > vicsekHeight) particle.y -= vicsekHeight;
+  });
+
+  // Calculate and display order parameter
+  const orderParameter = calculateOrderParameter();
+  d3.select("#order-parameter-value").text(orderParameter.toFixed(3));
+
+  // Update visualization - position and direction
+  particleElements.attr("transform", d => `translate(${d.x},${d.y})`)
+    .select("path")
+    .attr("transform", d => `rotate(${Math.atan2(d.vy, d.vx) * 180 / Math.PI})`);
+}
+
+// Initialize and start simulation
+initializeVicsekParticles();
+createParticleElements();
+
+let vicsekTimer = d3.interval(() => {
+  updateVicsekParticles();
+}, 30);
+
+// Reset button handler
+d3.select("#reset-vicsek").on("click", () => {
+  vicsekTimer.stop();
+  initializeVicsekParticles();
+  createParticleElements();
+  vicsekTimer = d3.interval(() => {
+    updateVicsekParticles();
+  }, 30);
+});
+
+// Draw interaction radius indicator
+const radiusIndicator = vicsekSvg.append("circle")
+  .attr("cx", 60)
+  .attr("cy", 60)
+  .attr("r", 50)
+  .attr("fill", "none")
+  .attr("stroke", "rgba(70, 130, 180, 0.4)")
+  .attr("stroke-width", 1)
+  .attr("stroke-dasharray", "5,5");
+
+// Add event handlers for slider value updates to prevent fluctuation
+d3.select("#particle-speed").on("input", function() {
+  const value = parseFloat(this.value);
+  d3.select("#speed-value").text(value.toFixed(1));
+});
+
+d3.select("#interaction-radius").on("input", function() {
+  const value = parseFloat(this.value);
+  d3.select("#radius-value").text(Math.round(value));
+  radiusIndicator.attr("r", value);
+});
+
+d3.select("#noise-level").on("input", function() {
+  const value = parseFloat(this.value);
+  d3.select("#noise-value").text(value.toFixed(1));
+});
+
+d3.select("#particle-density").on("input", function() {
+  const value = parseFloat(this.value);
+  d3.select("#density-value").text(value.toFixed(1));
+});
+</script>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-boids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Interaktive Simulation des Vicsek-Modells, die zeigt, wie lokale Ausrichtungsinteraktionen zu globaler Ordnung führen. Sie können wichtige Parameter anpassen, um zu beobachten, wie sie die Entstehung von Schwarmverhalten beeinflussen.
+</figcaption>
+</figure>
+</div>
+<section id="vicsek-modell" class="level2">
+<h2 class="anchored" data-anchor-id="vicsek-modell">Vicsek Modell</h2>
+<p>Das Vicsek-Modell ist ein fundamentales Modell der statistischen Physik, das 1995 von Tamás Vicsek und Kollegen entwickelt wurde. Es beschreibt die kollektive Bewegung selbstangetriebener Teilchen und demonstriert, wie einfache lokale Wechselwirkungen zu komplexem Schwarmverhalten führen können.</p>
+<p>In diesem Modell bewegen sich Teilchen mit konstanter Geschwindigkeit und passen ihre Bewegungsrichtung an die durchschnittliche Richtung ihrer Nachbarn an - allerdings mit einem gewissen Rauschanteil. Trotz dieser minimalistischen Regeln zeigt das System einen bemerkenswerten Phasenübergang: Bei niedrigem Rauschen entsteht spontan eine kollektive Ordnung, während bei hohem Rauschen die Bewegung ungeordnet bleibt.</p>
+<p>Der Ordnungsparameter φ quantifiziert dabei den Grad der kollektiven Ausrichtung und variiert zwischen 0 (völlig ungeordnete Bewegung) und 1 (perfekt ausgerichtete Bewegung). Das Vicsek-Modell hat sich als wegweisend für das Verständnis von Schwarmphänomenen in der Natur erwiesen - von Vogelschwärmen über Fischschulen bis hin zu Bakterienkolonien.</p>
 
 
 </section>

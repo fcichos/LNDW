@@ -94,7 +94,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Boids</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./index.html"> 
+    <a class="nav-link" href="./vicsek.html"> 
 <span class="menu-text">Vicsek</span></a>
   </li>  
   <li class="nav-item">
@@ -112,8 +112,14 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#das-boids-modell" id="toc-das-boids-modell" class="nav-link active" data-scroll-target="#das-boids-modell">Das Boids-Modell</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -144,7 +150,7 @@ ul.task-list li input[type="checkbox"] {
 
 <style>
   #boids-container {
-    width: 1200px;
+    width: 100%;
     height: 600px;
     margin: 0 auto;
     border: 0px solid #ccc;
@@ -431,6 +437,16 @@ Figure&nbsp;1: Interaktive Simulation des <a href="https://www.red3d.com/cwr/boi
 </figcaption>
 </figure>
 </div>
+<section id="das-boids-modell" class="level2">
+<h2 class="anchored" data-anchor-id="das-boids-modell">Das Boids-Modell</h2>
+<p>Das Boids-Modell wurde 1986 von Craig Reynolds entwickelt und ist eines der bekanntesten Beispiele für emergentes Verhalten in der Computergrafik und künstlichen Intelligenz. Der Name “Boid” ist eine Abkürzung für “bird-oid object” und beschreibt die einzelnen Agenten in der Simulation.</p>
+<p>Das Modell demonstriert, wie komplexes Schwarmverhalten aus drei einfachen lokalen Regeln entstehen kann:</p>
+<ol type="1">
+<li><strong>Separation</strong>: Halte Abstand zu deinen direkten Nachbarn, um Kollisionen zu vermeiden</li>
+<li><strong>Alignment</strong>: Passe deine Bewegungsrichtung an die durchschnittliche Richtung deiner Nachbarn an</li>
+<li><strong>Cohesion</strong>: Bewege dich zum Massenzentrum deiner lokalen Nachbarschaft</li>
+</ol>
+<p>Jeder Boid befolgt nur diese drei Regeln basierend auf den Positionen und Geschwindigkeiten seiner nächsten Nachbarn innerhalb eines begrenzten Wahrnehmungsradius. Trotz dieser Einfachheit entstehen realistische Schwarm- und Herdenbewegungen, wie sie bei Vögeln, Fischen oder anderen Tieren in der Natur beobachtet werden können.</p>
 <div class="grid">
 <div class="g-col-4">
 <div class="quarto-figure quarto-figure-center">
@@ -459,6 +475,7 @@ Figure&nbsp;1: Interaktive Simulation des <a href="https://www.red3d.com/cwr/boi
 </div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Boids Simulation nach Craig Reynolds – Lange Nacht der Wissenschaften</title>
+<title>Vicsek Simulation nach Craig Reynolds – Lange Nacht der Wissenschaften</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -94,7 +94,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Boids</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="./vicsek.html"> 
 <span class="menu-text">Vicsek</span></a>
   </li>  
   <li class="nav-item">
@@ -120,7 +120,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Boids Simulation nach Craig Reynolds</h1>
+<h1 class="title">Vicsek Simulation nach Craig Reynolds</h1>
 </div>
 
 
@@ -140,291 +140,264 @@ ul.task-list li input[type="checkbox"] {
 <div id="fig-boids" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-boids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="boids-container"></div>
-
-<style>
-  #boids-container {
-    width: 1200px;
-    height: 600px;
-    margin: 0 auto;
-    border: 0px solid #ccc;
-    background-color: #ffffff;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .boid {
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-left: 2.5px solid transparent;
-    border-right: 2.5px solid transparent;
-    border-bottom: 6px solid #000000;
-    transform-origin: 50% 67%;
-  }
-
-  .controls {
-    margin: 10px auto;
-    text-align: center;
-    font-family: sans-serif;
-  }
-
-  button, label {
-    margin: 0 10px;
-  }
-
-  button {
-    background: transparent;
-    cursor: pointer;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    box-shadow: none;
-  }
-</style>
-
-<div class="controls" style="display: flex; justify-content: space-between; align-items: flex-start;margin-left:20 px;">
-  <div>
-    <button id="reset-btn">Reset Simulation</button>
+<div id="vicsek-simulation" style="width: 100%; height: 430px; border: 0px solid #ccc; margin-bottom: 30px;">
+  <div id="vicsek-canvas" style="width: 100%; height: 350px;"></div>
+  <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label for="particle-speed">Speed: <span id="speed-value">4.0</span></label>
+      <input type="range" id="particle-speed" min="1.0" max="10" step="0.1" value="4">
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label for="interaction-radius">Interaction Radius: <span id="radius-value">50</span></label>
+      <input type="range" id="interaction-radius" min="10" max="100" step="5" value="50">
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label for="noise-level">Noise (η): <span id="noise-value">1.0</span></label>
+      <input type="range" id="noise-level" min="0" max="5" step="0.1" value="1.0">
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label for="particle-density">Density (ρ): <span id="density-value">3.0</span></label>
+      <input type="range" id="particle-density" min="0" max="10" step="0.5" value="3">
+    </div>
+    <button id="reset-vicsek" style="align-self: center; height: 30px;">Reset</button>
   </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-start; margin-top: 10px; margin-right: 100px;">
-    <label style="margin-bottom: 5px;">Separation: <input type="range" id="separation" min="0" max="5" step="0.1" value="2.5"></label>
-    <label style="margin-bottom: 5px;">Alignment: <input type="range" id="alignment" min="0" max="2" step="0.1" value="0.2"></label>
-    <label style="margin-bottom: 5px;">Cohesion: <input type="range" id="cohesion" min="0" max="2" step="0.1" value="0.2"></label>
+  <div style="text-align: center; margin-top: 10px; font-size: 14px; font-weight: bold;">
+    Order Parameter φ: <span id="order-parameter-value" style="color: steelblue;">0.00</span>
   </div>
 </div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // Configuration
-  const config = {
-    numBoids: 1000,
-    width: 1000,
-    height: 600,
-    maxSpeed: 3,
-    minSpeed: 1,
-    perceptionRadius: 20,
-    separationWeight: 2.5,
-    alignmentWeight: 0.2,
-    cohesionWeight: 0.01,
-    avoidBoundaryWeight: 1.0,
-    boundaryMargin: 50,
-    maxForce: 0.2
-  };
+// Simulation parameters
+const vicsekWidth = document.getElementById('vicsek-canvas').clientWidth;
+const vicsekHeight = 350;
+let numVicsekParticles = 300;
+// Store the current density value to avoid fluctuations in display
+let currentDensityValue = 3.0;
 
-  // Initialize boids
-  let boids = [];
+// Create SVG container
+const vicsekSvg = d3.select("#vicsek-canvas")
+  .append("svg")
+  .attr("width", vicsekWidth)
+  .attr("height", vicsekHeight);
 
-  function initBoids() {
-    boids = [];
-    for (let i = 0; i < config.numBoids; i++) {
-      boids.push({
-        id: i,
-        x: Math.random() * config.width,
-        y: Math.random() * config.height,
-        vx: Math.random() * 2 - 1,
-        vy: Math.random() * 2 - 1,
-        history: []
-      });
-    }
+// Add background for better visibility
+vicsekSvg.append("rect")
+  .attr("width", vicsekWidth)
+  .attr("height", vicsekHeight)
+  .attr("fill", "#f8f8f8");
 
-    // Normalize velocities
-    boids.forEach(boid => {
-      const speed = Math.sqrt(boid.vx * boid.vx + boid.vy * boid.vy);
-      boid.vx = (boid.vx / speed) * (config.minSpeed + Math.random() * (config.maxSpeed - config.minSpeed));
-      boid.vy = (boid.vy / speed) * (config.minSpeed + Math.random() * (config.maxSpeed - config.minSpeed));
+// Initialize particles
+let vicsekParticles = [];
+
+function initializeVicsekParticles() {
+  // Get current density value and convert to particle count
+  const densityValue = parseFloat(d3.select("#particle-density").property("value"));
+  currentDensityValue = densityValue; // Store the value
+  d3.select("#density-value").text(currentDensityValue.toFixed(1)); // Update display once
+
+  numVicsekParticles = Math.round(densityValue * 100); // Map 0-10 density to 0-1000 particles
+
+  vicsekParticles = [];
+  for (let i = 0; i < numVicsekParticles; i++) {
+    // Random position and direction
+    const angle = Math.random() * 2 * Math.PI;
+    vicsekParticles.push({
+      id: i,
+      x: Math.random() * vicsekWidth,
+      y: Math.random() * vicsekHeight,
+      angle: angle,
+      vx: Math.cos(angle),
+      vy: Math.sin(angle)
     });
   }
+}
 
-  // D3 setup
-  const container = d3.select('#boids-container');
+// Create particle elements
+let particleElements;
 
-  function updateBoids() {
-    // Read current slider values
-    config.separationWeight = parseFloat(d3.select('#separation').property('value'));
-    config.alignmentWeight = parseFloat(d3.select('#alignment').property('value'));
-    config.cohesionWeight = parseFloat(d3.select('#cohesion').property('value'));
+function createParticleElements() {
+  // Remove existing particles
+  vicsekSvg.selectAll(".particle").remove();
 
-    boids.forEach(boid => {
-      // Find neighbors within perception radius
-      const neighbors = boids.filter(other => {
-        if (other.id === boid.id) return false;
-        const dx = boid.x - other.x;
-        const dy = boid.y - other.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        return dist < config.perceptionRadius;
-      });
+  // Create new particles
+  particleElements = vicsekSvg.selectAll(".particle")
+    .data(vicsekParticles)
+    .enter()
+    .append("g")
+    .attr("class", "particle")
+    .attr("transform", d => `translate(${d.x},${d.y})`);
 
-      // Apply Reynolds' three rules plus boundary avoidance
+  // Add line for particles to show direction of motion
+  particleElements.append("line")
+    .attr("x1", 0)
+    .attr("y1", 0)
+    .attr("x2", d => 6 * d.vx)  // Line length in direction of motion
+    .attr("y2", d => 6 * d.vy)
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1.5);
+}
 
-      // Rule 1: Separation - avoid crowding neighbors
-      let separationForceX = 0;
-      let separationForceY = 0;
+function calculateOrderParameter() {
+  // Calculate the order parameter φ = |<v>|/v₀
+  // where <v> is the average velocity vector and v₀ is the particle speed
+  let sumVx = 0;
+  let sumVy = 0;
+
+  vicsekParticles.forEach(particle => {
+    sumVx += particle.vx;
+    sumVy += particle.vy;
+  });
+
+  // Average velocity components
+  const avgVx = sumVx / vicsekParticles.length;
+  const avgVy = sumVy / vicsekParticles.length;
+
+  // Magnitude of average velocity
+  const avgSpeed = Math.sqrt(avgVx * avgVx + avgVy * avgVy);
+
+  // Order parameter (normalized by unit speed since |v| = 1 for each particle)
+  const orderParameter = avgSpeed;
+
+  return orderParameter;
+}
+
+function updateVicsekParticles() {
+  // Get current parameter values
+  const particleSpeed = parseFloat(d3.select("#particle-speed").property("value"));
+  const interactionRadius = parseFloat(d3.select("#interaction-radius").property("value"));
+  const noiseLevel = parseFloat(d3.select("#noise-level").property("value"));
+  const densityValue = parseFloat(d3.select("#particle-density").property("value"));
+
+  // Don't update density display here to prevent fluctuation
+  currentDensityValue = densityValue;
+
+  const targetParticles = Math.round(currentDensityValue * 100);
+
+  // Check if density has changed and reinitialize if needed
+  if (targetParticles !== numVicsekParticles) {
+    numVicsekParticles = targetParticles;
+    initializeVicsekParticles();
+    createParticleElements();
+    return; // Skip this update cycle to avoid issues
+  }
+
+  // Update each particle according to Vicsek model
+  vicsekParticles.forEach(particle => {
+    // Find neighbors within interaction radius
+    const neighbors = vicsekParticles.filter(other => {
+      if (other.id === particle.id) return false;
+
+      // Calculate distance with periodic boundary conditions
+      let dx = Math.abs(other.x - particle.x);
+      let dy = Math.abs(other.y - particle.y);
+
+      // Account for periodic boundaries
+      if (dx > vicsekWidth / 2) dx = vicsekWidth - dx;
+      if (dy > vicsekHeight / 2) dy = vicsekHeight - dy;
+
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance < interactionRadius;
+    });
+
+    if (neighbors.length > 0) {
+      // Calculate average direction of neighbors
+      let avgSin = 0;
+      let avgCos = 0;
 
       neighbors.forEach(neighbor => {
-        const dx = boid.x - neighbor.x;
-        const dy = boid.y - neighbor.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        // Weight by inverse distance - closer neighbors have more influence
-        const factor = Math.max(0, config.perceptionRadius - dist) / config.perceptionRadius;
-        separationForceX += (dx / dist) * factor;
-        separationForceY += (dy / dist) * factor;
+        avgSin += Math.sin(neighbor.angle);
+        avgCos += Math.cos(neighbor.angle);
       });
 
-      // Rule 2: Alignment - steer towards average heading of neighbors
-      let alignmentForceX = 0;
-      let alignmentForceY = 0;
+      avgSin /= neighbors.length;
+      avgCos /= neighbors.length;
 
-      if (neighbors.length > 0) {
-        let avgVx = 0;
-        let avgVy = 0;
+      // New angle is the average angle plus noise
+      let newAngle = Math.atan2(avgSin, avgCos);
 
-        neighbors.forEach(neighbor => {
-          avgVx += neighbor.vx;
-          avgVy += neighbor.vy;
-        });
+      // Add noise - consistent with original Vicsek paper scaling
+      // η ranges from 0 to 5, with noise applied as η * ξ where ξ ∈ [-π, π]
+      newAngle += (Math.random() - 0.5) * 2 * Math.PI * (noiseLevel / 5);
 
-        avgVx /= neighbors.length;
-        avgVy /= neighbors.length;
+      // Update angle and velocity
+      particle.angle = newAngle;
+      particle.vx = Math.cos(newAngle);
+      particle.vy = Math.sin(newAngle);
+    }
 
-        // Calculate steering force toward alignment
-        alignmentForceX = avgVx - boid.vx;
-        alignmentForceY = avgVy - boid.vy;
-      }
+    // Update position
+    particle.x += particle.vx * particleSpeed;
+    particle.y += particle.vy * particleSpeed;
 
-      // Rule 3: Cohesion - steer towards center of mass of neighbors
-      let cohesionForceX = 0;
-      let cohesionForceY = 0;
+    // Periodic boundary conditions
+    if (particle.x < 0) particle.x += vicsekWidth;
+    if (particle.x > vicsekWidth) particle.x -= vicsekWidth;
+    if (particle.y < 0) particle.y += vicsekHeight;
+    if (particle.y > vicsekHeight) particle.y -= vicsekHeight;
+  });
 
-      if (neighbors.length > 0) {
-        let centerX = 0;
-        let centerY = 0;
+  // Calculate and display order parameter
+  const orderParameter = calculateOrderParameter();
+  d3.select("#order-parameter-value").text(orderParameter.toFixed(3));
 
-        neighbors.forEach(neighbor => {
-          centerX += neighbor.x;
-          centerY += neighbor.y;
-        });
+  // Update visualization - position and direction
+  particleElements.attr("transform", d => `translate(${d.x},${d.y})`)
+    .select("line")
+    .attr("x2", d => 6 * d.vx)
+    .attr("y2", d => 6 * d.vy);
+}
 
-        centerX /= neighbors.length;
-        centerY /= neighbors.length;
+// Initialize and start simulation
+initializeVicsekParticles();
+createParticleElements();
 
-        // Calculate steering force toward center
-        cohesionForceX = centerX - boid.x;
-        cohesionForceY = centerY - boid.y;
-      }
+let vicsekTimer = d3.interval(() => {
+  updateVicsekParticles();
+}, 30);
 
-      // Boundary avoidance
-      let boundaryForceX = 0;
-      let boundaryForceY = 0;
+// Reset button handler
+d3.select("#reset-vicsek").on("click", () => {
+  vicsekTimer.stop();
+  initializeVicsekParticles();
+  createParticleElements();
+  vicsekTimer = d3.interval(() => {
+    updateVicsekParticles();
+  }, 30);
+});
 
-      if (boid.x < config.boundaryMargin) {
-        boundaryForceX = config.boundaryMargin - boid.x;
-      } else if (boid.x > config.width - config.boundaryMargin) {
-        boundaryForceX = (config.width - config.boundaryMargin) - boid.x;
-      }
+// Draw interaction radius indicator
+const radiusIndicator = vicsekSvg.append("circle")
+  .attr("cx", 60)
+  .attr("cy", 60)
+  .attr("r", 50)
+  .attr("fill", "none")
+  .attr("stroke", "rgba(70, 130, 180, 0.4)")
+  .attr("stroke-width", 1)
+  .attr("stroke-dasharray", "5,5");
 
-      if (boid.y < config.boundaryMargin) {
-        boundaryForceY = config.boundaryMargin - boid.y;
-      } else if (boid.y > config.height - config.boundaryMargin) {
-        boundaryForceY = (config.height - config.boundaryMargin) - boid.y;
-      }
+// Add event handlers for slider value updates to prevent fluctuation
+d3.select("#particle-speed").on("input", function() {
+  const value = parseFloat(this.value);
+  d3.select("#speed-value").text(value.toFixed(1));
+});
 
-      // Apply all forces with weights
-      let accelerationX = separationForceX * config.separationWeight +
-                          alignmentForceX * config.alignmentWeight +
-                          cohesionForceX * config.cohesionWeight +
-                          boundaryForceX * config.avoidBoundaryWeight;
+d3.select("#interaction-radius").on("input", function() {
+  const value = parseFloat(this.value);
+  d3.select("#radius-value").text(Math.round(value));
+  radiusIndicator.attr("r", value);
+});
 
-      let accelerationY = separationForceY * config.separationWeight +
-                          alignmentForceY * config.alignmentWeight +
-                          cohesionForceY * config.cohesionWeight +
-                          boundaryForceY * config.avoidBoundaryWeight;
+d3.select("#noise-level").on("input", function() {
+  const value = parseFloat(this.value);
+  d3.select("#noise-value").text(value.toFixed(1));
+});
 
-      // Limit force magnitude
-      const forceMagnitude = Math.sqrt(accelerationX * accelerationX + accelerationY * accelerationY);
-      if (forceMagnitude > config.maxForce) {
-        accelerationX = (accelerationX / forceMagnitude) * config.maxForce;
-        accelerationY = (accelerationY / forceMagnitude) * config.maxForce;
-      }
-
-      // Update velocity
-      boid.vx += accelerationX;
-      boid.vy += accelerationY;
-
-      // Limit speed
-      const speed = Math.sqrt(boid.vx * boid.vx + boid.vy * boid.vy);
-      if (speed > config.maxSpeed) {
-        boid.vx = (boid.vx / speed) * config.maxSpeed;
-        boid.vy = (boid.vy / speed) * config.maxSpeed;
-      } else if (speed < config.minSpeed) {
-        boid.vx = (boid.vx / speed) * config.minSpeed;
-        boid.vy = (boid.vy / speed) * config.minSpeed;
-      }
-
-      // Update position
-      boid.x += boid.vx;
-      boid.y += boid.vy;
-
-      // Keep track of history for trail (optional)
-      boid.history.push({ x: boid.x, y: boid.y });
-      if (boid.history.length > 10) {
-        boid.history.shift();
-      }
-
-      // Wrap around boundaries (alternative to avoidance)
-      /*
-      if (boid.x < 0) boid.x = config.width;
-      if (boid.x > config.width) boid.x = 0;
-      if (boid.y < 0) boid.y = config.height;
-      if (boid.y > config.height) boid.y = 0;
-      */
-    });
-  }
-
-  function render() {
-    // Update boid elements
-    const boidElements = container.selectAll('.boid')
-      .data(boids, d => d.id);
-
-    // Enter
-    boidElements.enter()
-      .append('div')
-      .attr('class', 'boid')
-      .attr('id', d => `boid-${d.id}`);
-
-    // Update
-    container.selectAll('.boid')
-      .style('left', d => `${d.x}px`)
-      .style('top', d => `${d.y}px`)
-      .style('transform', d => {
-        const angle = Math.atan2(d.vy, d.vx) * (180 / Math.PI) + 90;
-        return `translate(-50%, -50%) rotate(${angle}deg)`;
-      });
-
-    // Exit
-    boidElements.exit().remove();
-  }
-
-  function animate() {
-    updateBoids();
-    render();
-    requestAnimationFrame(animate);
-  }
-
-  // Reset function and event binding
-  function resetSimulation() {
-    initBoids();
-    render();
-  }
-
-  d3.select('#reset-btn').on('click', resetSimulation);
-
-  // Initialize and start animation
-  initBoids();
-  animate();
+d3.select("#particle-density").on("input", function() {
+  const value = parseFloat(this.value);
+  d3.select("#density-value").text(value.toFixed(1));
 });
 </script>
-
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-boids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: Interaktive Simulation des <a href="https://www.red3d.com/cwr/boids/">Boids-Modells</a> nach Craig Reynolds, bei der Sie die drei Schlüsselparameter anpassen können, die das Schwarmverhalten steuern: Separation (Vermeidung von Gedränge), Ausrichtung (Steuerung zur durchschnittlichen Flugrichtung) und Kohäsion (Steuerung zum Massenzentrum).
