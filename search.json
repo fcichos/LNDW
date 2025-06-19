@@ -14,18 +14,11 @@
     "text": "Das Boids-Modell\nDas Boids-Modell wurde 1986 von Craig Reynolds entwickelt und ist eines der bekanntesten Beispiele für emergentes Verhalten in der Computergrafik und künstlichen Intelligenz. Der Name “Boid” ist eine Abkürzung für “bird-oid object” und beschreibt die einzelnen Agenten in der Simulation.\nDas Modell demonstriert, wie komplexes Schwarmverhalten aus drei einfachen lokalen Regeln entstehen kann:\n\nSeparation: Halte Abstand zu deinen direkten Nachbarn, um Kollisionen zu vermeiden\nAlignment: Passe deine Bewegungsrichtung an die durchschnittliche Richtung deiner Nachbarn an\nCohesion: Bewege dich zum Massenzentrum deiner lokalen Nachbarschaft\n\nJeder Boid befolgt nur diese drei Regeln basierend auf den Positionen und Geschwindigkeiten seiner nächsten Nachbarn innerhalb eines begrenzten Wahrnehmungsradius. Trotz dieser Einfachheit entstehen realistische Schwarm- und Herdenbewegungen, wie sie bei Vögeln, Fischen oder anderen Tieren in der Natur beobachtet werden können.\n\n\n\n\n\nSeparation - Boids vermeiden Gedränge mit ihren Nachbarn\n\n\n\n\n\n\n\nAlignment - Boids richten sich an der durchschnittlichen Flugrichtung ihrer Nachbarn aus\n\n\n\n\n\n\n\nCohesion - Boids steuern zum Massenzentrum ihrer Nachbarn"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Vicsek Simulation nach Craig Reynolds",
-    "section": "",
-    "text": "Speed: 4.0\n      \n    \n    \n      Interaction Radius: 50\n      \n    \n    \n      Noise (η): 1.0\n      \n    \n    \n      Density (ρ): 3.0\n      \n    \n    Reset\n  \n  \n    Order Parameter φ: 0.00\n  \n\n\n\n\n\n\nFigure 1: Interaktive Simulation des Boids-Modells nach Craig Reynolds, bei der Sie die drei Schlüsselparameter anpassen können, die das Schwarmverhalten steuern: Separation (Vermeidung von Gedränge), Ausrichtung (Steuerung zur durchschnittlichen Flugrichtung) und Kohäsion (Steuerung zum Massenzentrum).\n\n\n\n\n\n\n\n\nSeparation - Boids vermeiden Gedränge mit ihren Nachbarn\n\n\n\n\n\n\n\nAlignment - Boids richten sich an der durchschnittlichen Flugrichtung ihrer Nachbarn aus\n\n\n\n\n\n\n\nCohesion - Boids steuern zum Massenzentrum ihrer Nachbarn"
-  },
-  {
     "objectID": "vicsek.html",
     "href": "vicsek.html",
     "title": "Vicsek Modell",
     "section": "",
-    "text": "Speed: 4.0\n      \n    \n    \n      Interaction Radius: 50\n      \n    \n    \n      Noise (η): 1.0\n      \n    \n    \n      Density (ρ): 3.0\n      \n    \n    Reset\n  \n  \n    Order Parameter φ: 0.00\n  \n\n\n\n\n\n\nFigure 1: Interaktive Simulation des Vicsek-Modells, die zeigt, wie lokale Ausrichtungsinteraktionen zu globaler Ordnung führen. Sie können wichtige Parameter anpassen, um zu beobachten, wie sie die Entstehung von Schwarmverhalten beeinflussen."
+    "text": "Speed: 4.0\n      \n    \n    \n      Interaction Radius: 50\n      \n    \n    \n      Noise (η): 1.0\n      \n    \n    \n      Density (ρ): 3.0\n      \n    \n  \n  \n    Reset\n    \n      Order Parameter φ: 0.00\n    \n  \n\n\n\n\n\n\nFigure 1: Interaktive Simulation des Vicsek-Modells, die zeigt, wie lokale Ausrichtungsinteraktionen zu globaler Ordnung führen. Sie können wichtige Parameter anpassen, um zu beobachten, wie sie die Entstehung von Schwarmverhalten beeinflussen."
   },
   {
     "objectID": "vicsek.html#vicsek-modell",
@@ -35,15 +28,29 @@
     "text": "Vicsek Modell\nDas Vicsek-Modell ist ein fundamentales Modell der statistischen Physik, das 1995 von Tamás Vicsek und Kollegen entwickelt wurde. Es beschreibt die kollektive Bewegung selbstangetriebener Teilchen und demonstriert, wie einfache lokale Wechselwirkungen zu komplexem Schwarmverhalten führen können.\nIn diesem Modell bewegen sich Teilchen mit konstanter Geschwindigkeit und passen ihre Bewegungsrichtung an die durchschnittliche Richtung ihrer Nachbarn an - allerdings mit einem gewissen Rauschanteil. Trotz dieser minimalistischen Regeln zeigt das System einen bemerkenswerten Phasenübergang: Bei niedrigem Rauschen entsteht spontan eine kollektive Ordnung, während bei hohem Rauschen die Bewegung ungeordnet bleibt.\nDer Ordnungsparameter φ quantifiziert dabei den Grad der kollektiven Ausrichtung und variiert zwischen 0 (völlig ungeordnete Bewegung) und 1 (perfekt ausgerichtete Bewegung). Das Vicsek-Modell hat sich als wegweisend für das Verständnis von Schwarmphänomenen in der Natur erwiesen - von Vogelschwärmen über Fischschulen bis hin zu Bakterienkolonien."
   },
   {
-    "objectID": "about.html",
-    "href": "about.html",
+    "objectID": "old.html",
+    "href": "old.html",
+    "title": "Boids Simulation nach Craig Reynolds",
+    "section": "",
+    "text": "Reset Simulation\n  \n  \n    Separation: \n    Alignment: \n    Cohesion: \n  \n\n\n\n\n\n\n\nFigure 1: Interaktive Simulation des Boids-Modells nach Craig Reynolds, bei der Sie die drei Schlüsselparameter anpassen können, die das Schwarmverhalten steuern: Separation (Vermeidung von Gedränge), Ausrichtung (Steuerung zur durchschnittlichen Flugrichtung) und Kohäsion (Steuerung zum Massenzentrum)."
+  },
+  {
+    "objectID": "old.html#das-boids-modell",
+    "href": "old.html#das-boids-modell",
+    "title": "Boids Simulation nach Craig Reynolds",
+    "section": "Das Boids-Modell",
+    "text": "Das Boids-Modell\nDas Boids-Modell wurde 1986 von Craig Reynolds entwickelt und ist eines der bekanntesten Beispiele für emergentes Verhalten in der Computergrafik und künstlichen Intelligenz. Der Name “Boid” ist eine Abkürzung für “bird-oid object” und beschreibt die einzelnen Agenten in der Simulation.\nDas Modell demonstriert, wie komplexes Schwarmverhalten aus drei einfachen lokalen Regeln entstehen kann:\n\nSeparation: Halte Abstand zu deinen direkten Nachbarn, um Kollisionen zu vermeiden\nAlignment: Passe deine Bewegungsrichtung an die durchschnittliche Richtung deiner Nachbarn an\nCohesion: Bewege dich zum Massenzentrum deiner lokalen Nachbarschaft\n\nJeder Boid befolgt nur diese drei Regeln basierend auf den Positionen und Geschwindigkeiten seiner nächsten Nachbarn innerhalb eines begrenzten Wahrnehmungsradius. Trotz dieser Einfachheit entstehen realistische Schwarm- und Herdenbewegungen, wie sie bei Vögeln, Fischen oder anderen Tieren in der Natur beobachtet werden können.\n\n\n\n\n\nSeparation - Boids vermeiden Gedränge mit ihren Nachbarn\n\n\n\n\n\n\n\nAlignment - Boids richten sich an der durchschnittlichen Flugrichtung ihrer Nachbarn aus\n\n\n\n\n\n\n\nCohesion - Boids steuern zum Massenzentrum ihrer Nachbarn"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
     "title": "Aktive Materie",
     "section": "",
     "text": "Diese Webseite zeigt Simulationen von Schwarmverhalten mit zwei verschiedenen Modellen: dem Vicsek-Modell und dem Boids-Modell. Diese Modelle werden verwendet um das Verhalten biologischer Schwärme mit einfachen Modellen nachzuahmen, um zu verstehen welche Regeln die Schwarmbildung beeinflussen.\nDie Arbeitsgruppe Molekulare Nanophotonik am Peter-Debye-Institut für Physik weicher Materie stellt mirkoskopische aktive Partikel her und untersucht deren Dynamik und Interaktionen. Diese Partikel können als künstliches Modell für aktive Materie verwendet werden, um neue neue Systeme zu schaffen, die sich aufgrund von einfachen Regeln zu komplexen dynamischen lebensähnlichen Strukturen und Schwärmen entwickeln."
   },
   {
-    "objectID": "about.html#schwarmverhalten",
-    "href": "about.html#schwarmverhalten",
+    "objectID": "index.html#schwarmverhalten",
+    "href": "index.html#schwarmverhalten",
     "title": "Aktive Materie",
     "section": "",
     "text": "Diese Webseite zeigt Simulationen von Schwarmverhalten mit zwei verschiedenen Modellen: dem Vicsek-Modell und dem Boids-Modell. Diese Modelle werden verwendet um das Verhalten biologischer Schwärme mit einfachen Modellen nachzuahmen, um zu verstehen welche Regeln die Schwarmbildung beeinflussen.\nDie Arbeitsgruppe Molekulare Nanophotonik am Peter-Debye-Institut für Physik weicher Materie stellt mirkoskopische aktive Partikel her und untersucht deren Dynamik und Interaktionen. Diese Partikel können als künstliches Modell für aktive Materie verwendet werden, um neue neue Systeme zu schaffen, die sich aufgrund von einfachen Regeln zu komplexen dynamischen lebensähnlichen Strukturen und Schwärmen entwickeln."

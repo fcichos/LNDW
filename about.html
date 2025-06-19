@@ -143,6 +143,16 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<style>
+  body {
+    background-image: url('https://www.wissen-in-leipzig.de/media/pages/images/abb4c285d5-1741005046/lndw_animation_vorschau-1200x.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: white;
+  }
+</style>
 <section id="schwarmverhalten" class="level2">
 <h2 class="anchored" data-anchor-id="schwarmverhalten">Schwarmverhalten</h2>
 <p>Diese Webseite zeigt Simulationen von Schwarmverhalten mit zwei verschiedenen Modellen: dem Vicsek-Modell und dem Boids-Modell. Diese Modelle werden verwendet um das Verhalten biologischer Schwärme mit einfachen Modellen nachzuahmen, um zu verstehen welche Regeln die Schwarmbildung beeinflussen.</p>
@@ -224,7 +234,7 @@ ul.task-list li input[type="checkbox"] {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/fcichos\.github\.io\/LNDW\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
