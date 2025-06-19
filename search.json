@@ -1,0 +1,16 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Boids Simulation nach Craig Reynolds",
+    "section": "",
+    "text": "Reset Simulation\n  \n  \n    Separation: \n    Alignment: \n    Cohesion: \n  \n\n\n\n\n\n\n\nFigure 1: Interaktive Simulation des Boids-Modells nach Craig Reynolds, bei der Sie die drei Schlüsselparameter anpassen können, die das Schwarmverhalten steuern: Separation (Vermeidung von Gedränge), Ausrichtung (Steuerung zur durchschnittlichen Flugrichtung) und Kohäsion (Steuerung zum Massenzentrum).\n\n\n\n\n\n\n\n\nSeparation - Boids vermeiden Gedränge mit ihren Nachbarn\n\n\n\n\n\n\n\nAlignment - Boids richten sich an der durchschnittlichen Flugrichtung ihrer Nachbarn aus\n\n\n\n\n\n\n\nCohesion - Boids steuern zum Massenzentrum ihrer Nachbarn"
+  }
+]
