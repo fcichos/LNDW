@@ -193,19 +193,23 @@ ul.task-list li input[type="checkbox"] {
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Get actual container dimensions
+  const containerElement = document.getElementById('boids-container');
+  const containerRect = containerElement.getBoundingClientRect();
+
   // Configuration
   const config = {
     numBoids: 1000,
-    width: 1000,
-    height: 600,
+    width: containerRect.width,
+    height: containerRect.height,
     maxSpeed: 3,
     minSpeed: 1,
     perceptionRadius: 20,
     separationWeight: 2.5,
     alignmentWeight: 0.2,
     cohesionWeight: 0.01,
-    avoidBoundaryWeight: 1.0,
-    boundaryMargin: 50,
+    avoidBoundaryWeight: 3.0,
+    boundaryMargin: 80,
     maxForce: 0.2
   };
 
@@ -217,8 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < config.numBoids; i++) {
       boids.push({
         id: i,
-        x: Math.random() * config.width,
-        y: Math.random() * config.height,
+        x: config.boundaryMargin + Math.random() * (config.width - 2 * config.boundaryMargin),
+        y: config.boundaryMargin + Math.random() * (config.height - 2 * config.boundaryMargin),
         vx: Math.random() * 2 - 1,
         vy: Math.random() * 2 - 1,
         history: []
@@ -310,20 +314,24 @@ document.addEventListener('DOMContentLoaded', () => {
         cohesionForceY = centerY - boid.y;
       }
 
-      // Boundary avoidance
+      // Boundary avoidance with stronger repulsion
       let boundaryForceX = 0;
       let boundaryForceY = 0;
 
       if (boid.x < config.boundaryMargin) {
-        boundaryForceX = config.boundaryMargin - boid.x;
+        const factor = (config.boundaryMargin - boid.x) / config.boundaryMargin;
+        boundaryForceX = factor * factor * config.maxSpeed;
       } else if (boid.x > config.width - config.boundaryMargin) {
-        boundaryForceX = (config.width - config.boundaryMargin) - boid.x;
+        const factor = (boid.x - (config.width - config.boundaryMargin)) / config.boundaryMargin;
+        boundaryForceX = -factor * factor * config.maxSpeed;
       }
 
       if (boid.y < config.boundaryMargin) {
-        boundaryForceY = config.boundaryMargin - boid.y;
+        const factor = (config.boundaryMargin - boid.y) / config.boundaryMargin;
+        boundaryForceY = factor * factor * config.maxSpeed;
       } else if (boid.y > config.height - config.boundaryMargin) {
-        boundaryForceY = (config.height - config.boundaryMargin) - boid.y;
+        const factor = (boid.y - (config.height - config.boundaryMargin)) / config.boundaryMargin;
+        boundaryForceY = -factor * factor * config.maxSpeed;
       }
 
       // Apply all forces with weights
@@ -362,19 +370,28 @@ document.addEventListener('DOMContentLoaded', () => {
       boid.x += boid.vx;
       boid.y += boid.vy;
 
+      // Hard boundary constraints
+      if (boid.x < 5) {
+        boid.x = 5;
+        boid.vx = Math.abs(boid.vx);
+      } else if (boid.x > config.width - 5) {
+        boid.x = config.width - 5;
+        boid.vx = -Math.abs(boid.vx);
+      }
+
+      if (boid.y < 5) {
+        boid.y = 5;
+        boid.vy = Math.abs(boid.vy);
+      } else if (boid.y > config.height - 5) {
+        boid.y = config.height - 5;
+        boid.vy = -Math.abs(boid.vy);
+      }
+
       // Keep track of history for trail (optional)
       boid.history.push({ x: boid.x, y: boid.y });
       if (boid.history.length > 10) {
         boid.history.shift();
       }
-
-      // Wrap around boundaries (alternative to avoidance)
-      /*
-      if (boid.x < 0) boid.x = config.width;
-      if (boid.x > config.width) boid.x = 0;
-      if (boid.y < 0) boid.y = config.height;
-      if (boid.y > config.height) boid.y = 0;
-      */
     });
   }
 
@@ -410,6 +427,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Reset function and event binding
   function resetSimulation() {
+    // Update dimensions in case window resized
+    const containerRect = containerElement.getBoundingClientRect();
+    config.width = containerRect.width;
+    config.height = containerRect.height;
+
     initBoids();
     render();
   }
@@ -419,6 +441,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize and start animation
   initBoids();
   animate();
+
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    const containerRect = containerElement.getBoundingClientRect();
+    config.width = containerRect.width;
+    config.height = containerRect.height;
+  });
 });
 </script>
 
